@@ -4,11 +4,14 @@
         body {background-color: black; color: lightcyan; font-size: 1.2em;}
         #folder {background-color: darkslategrey; color: white;}
         ul {line-height: 1.5;}
-        li {display: inline; margin-right: 1%; padding: .15%;}
+        li {
+            display: inline-block; margin-right: 1%; padding: .15%;
+            width: 8em; height: 2em; display: flex; justify-content: start; align-items: center;
+        }
         li:hover{background-color: firebrick; cursor: pointer;}
         .back {color: orangered;}
-        li > a > svg {height: 1em}
-        li > a {color: white; text-decoration: none}
+        li > a > svg {width: 1em; margin-right: .5em;}
+        li > a {color: white; text-decoration: none; display: flex;}
     </style>
 </head>
 <body>
