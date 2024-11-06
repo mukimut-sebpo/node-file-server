@@ -31,10 +31,20 @@ const server = createServer((req, res) => {
         const paths = url.split('/').filter(e => e != '');
         const pathString = getPathString(paths);
 
-        const stream = createWriteStream(pathString);
-        stream.on('open', () => req.pipe(stream));
-        stream.on('close', () => res.end('Upload Done'));
-        stream.on('error', (e) => res.end(JSON.stringify(e)));
+        req.on('data', (chunk: Buffer) => {
+            // console.log(chunk.toString('utf-8'));
+            console.log('samin');
+            let a =chunk.toString('utf8');
+            a = a.replaceAll('\n', '\\n')
+            console.log(a);
+        });
+        // res.end();
+
+        // const stream = createWriteStream(pathString);
+        
+        // stream.on('open', () => req.pipe(stream));
+        // stream.on('close', () => res.end('Upload Done'));
+        // stream.on('error', (e) => res.end(JSON.stringify(e)));
 
         return;
     }
