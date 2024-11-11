@@ -1,7 +1,7 @@
 import {createServer} from 'node:http';
 import {join} from 'path';
 import {readdir, stat} from 'fs/promises';
-import {createReadStream, createWriteStream} from 'fs';
+import {createReadStream, createWriteStream, WriteStream} from 'fs';
 
 const uploadHtml = '<form action="fileupload" method="post" enctype="multipart/form-data"><input type="file" name="filetoupload"><input type="submit" value="Upload"></form>'
 const headerMeta = `<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">`;
@@ -30,22 +30,38 @@ const server = createServer((req, res) => {
     
         const paths = url.split('/').filter(e => e != '');
         const pathString = getPathString(paths);
+        let writeStream: WriteStream;
 
         req.on('data', (chunk: Buffer) => {
-            // console.log(chunk.toString('utf-8'));
-            console.log('samin');
-            let a =chunk.toString('utf8');
-            a = a.replaceAll('\n', '\\n')
-            console.log(a);
+            const data: string = chunk.toString('utf-8');
+
+            const list = data.split('\n');
+            if(data.startsWith('-----------------------------')) {
+                const fileNameStart = list[1].indexOf('filename="') + 10;
+                const fileName = list[1].substring(fileNameStart, list[1].length - 2);
+                // writeStream = createWriteStream(join('dist', 'stuff.txt'));
+                writeStream = createWriteStream(join(pathString, fileName));
+
+                const headerString = list.slice(0, 4).join('\n') + '\n';
+                const headerBuffer = Buffer.from(headerString);
+                const bufferSize = headerBuffer.length;
+                chunk = chunk.slice(bufferSize);
+            }
+
+            if(list[list.length - 2] && list[list.length - 2].startsWith('-----------------------------')) {
+                const tailBuffer = Buffer.from('\n' + list[5] + '\n' + list[6]);
+                const bufferSize = tailBuffer.length;
+                chunk = chunk.slice(0, bufferSize);
+            }
+
+            writeStream.write(chunk);
+
         });
-        // res.end();
 
-        // const stream = createWriteStream(pathString);
-        
-        // stream.on('open', () => req.pipe(stream));
-        // stream.on('close', () => res.end('Upload Done'));
-        // stream.on('error', (e) => res.end(JSON.stringify(e)));
-
+        req.on('close', () => {
+            writeStream.end();
+            res.end('done');
+        });
         return;
     }
     else if(url.startsWith('/getFile')) {
